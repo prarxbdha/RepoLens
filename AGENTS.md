@@ -1,39 +1,36 @@
 # AGENTS.md — RepoLens
 
 ## Project mission
-RepoLens is a small, educational GitHub MCP server built with TypeScript and Node.js. It exposes GitHub repository information to MCP-compatible AI clients such as OpenCode. The purpose is to learn HTTP, REST APIs, JSON, authentication, MCP, JSON-RPC, tool discovery, testing, and Git—not to build an unnecessarily complex product.
+RepoLens is a small, read-only GitHub MCP server built with TypeScript and Node.js. It exposes GitHub repository information to MCP-compatible AI clients such as OpenCode through a local stdio transport. The project stays lightweight, dependency-minimal, and focused on read-only repository analysis.
+
+## Working mode
+Implementation mode. Proceed autonomously through implementation, testing, debugging, and documentation. Do not provide tutorials, exercises, or step-by-step teaching unless explicitly requested. Do not stop for approval after every phase. Ask first only for destructive operations, credentials, or significant architectural decisions.
 
 ## Read this first
 Before making any change:
 1. Read this file and inspect the relevant existing code, `package.json`, TypeScript configuration, and README.
-2. Explain the intended change briefly, including which files will be touched.
-3. Prefer the smallest working change. Preserve existing behavior unless explicitly asked to change it.
-4. Never assume a package API or version: inspect installed packages and their types/documentation first.
-5. After editing, run available relevant checks and report their actual results.
+2. Preserve working functionality and avoid rewriting functional code unnecessarily.
+3. Never assume a package API or version: inspect installed packages and their types/documentation first.
+4. After editing, run available relevant checks and report their actual results.
 
-## Scope and milestones
-Build incrementally:
-1. Set up a strict TypeScript/Node.js ESM project and a local stdio MCP server with a `ping` tool.
-2. Implement a small GitHub REST API client for public repositories.
-3. Expose `get_repo_info`, `get_commits`, and `list_issues` MCP tools.
-4. Test MCP tool discovery and invocation, then connect the server to OpenCode.
-5. Improve documentation, tests, error handling, and optional token authentication.
-Do not implement future milestones before requested. Do not add a frontend, database, AI model, web server, Docker, or unrelated dependencies without a clear need and approval.
+## Scope
+The server provides read-only tools for repository metadata, commits, issues, pull requests, languages, and README content, plus a `ping` health tool. GitHub access uses the official REST API with native `fetch`, optional `GITHUB_TOKEN` authentication, strict input validation, timeouts, and explicit error handling. Do not add a frontend, database, AI model, web server, Docker, write operations, or unrelated dependencies without a clear need and approval.
 
 ## Stack and architecture
 - TypeScript with strict type checking, Node.js, ESM.
 - Official MCP TypeScript SDK compatible with the installed version; validate actual import paths before using them.
 - Zod for MCP tool input schemas where appropriate.
 - Native `fetch` for GitHub REST API requests unless there is a demonstrated reason to add a client library.
-- Keep MCP transport/server setup separate from GitHub HTTP operations and tool definitions as the project grows.
+- Keep MCP transport/server setup separate from GitHub HTTP operations and tool definitions.
 - Prefer clear names, small functions, explicit types, and minimal dependencies.
-- Suggested layout (adapt to actual needs, do not create empty scaffolding):
+- Layout:
   - `src/index.ts` — entry point and stdio transport
   - `src/server.ts` — MCP server and tool registration
-  - `src/github/client.ts` — GitHub API requests and response/error handling
-  - `src/tools/` — MCP tool handlers, if multiple handlers justify separation
-  - `tests/` — focused automated tests
-  - `README.md` — setup, usage, examples, architecture, and learning notes
+  - `src/github/client.ts` — GitHub REST requests, validation, errors, timeouts
+  - `src/github/types.ts` — strict GitHub response types
+  - `src/tools/` — one module per tool family, plus shared result helpers
+  - `tests/` — unit and MCP-level automated tests with mocked HTTP
+  - `README.md` — setup, usage, architecture, and troubleshooting
 
 ## MCP rules
 - For local MCP, use stdio transport unless instructed otherwise.
@@ -68,14 +65,8 @@ Do not implement future milestones before requested. Do not add a frontend, data
 - Do not say tests pass unless they were executed successfully. Report skipped checks and reasons.
 - Do not silently alter dependencies, formatting rules, or project structure.
 
-## Teaching mode — mandatory
-After each meaningful change, explain:
-1. **What changed** — files and behavior.
-2. **Why it exists** — the problem it solves.
-3. **How it works** — especially HTTP, JSON, REST, MCP, JSON-RPC, schemas, transports, and async operations when relevant.
-4. **How to verify it** — exact commands and expected outcomes.
-5. **What to learn next** — one or two concepts, not a large lecture.
-When introducing a new concept, use a small concrete example. Do not hide core logic behind large generated abstractions. Ask before making major architectural decisions.
+## Reporting — mandatory
+After implementation, provide a concise completion report: implemented features, files created or modified, checks run with actual results, commands required to run the project, known limitations, and remaining issues. Do not turn the report into a tutorial or exercise. Be candid about skipped checks and failures.
 
 ## Git and GitHub workflow
 - Make changes in small, reviewable steps.

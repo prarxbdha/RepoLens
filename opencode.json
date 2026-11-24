@@ -1,0 +1,15 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "servers": {
+      "repolens": {
+        "type": "local",
+        "command": ["node", "dist/index.js"],
+        "cwd": ".",
+        "environment": {
+          "GITHUB_TOKEN": "{env:GITHUB_TOKEN}"
+        }
+      }
+    }
+  }
+}
