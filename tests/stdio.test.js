@@ -87,13 +87,21 @@ test("MCP stdio server", async (t) => {
     const response = await client.request("tools/list");
     const names = response.result.tools.map((tool) => tool.name);
     assert.deepEqual(names.sort(), [
+      "analyze_repository",
+      "get_commit_details",
       "get_commits",
+      "get_contributors",
+      "get_file_content",
+      "get_pr_details",
+      "get_repo_dependencies",
       "get_repo_info",
       "get_repo_languages",
       "get_repo_readme",
+      "get_repo_tree",
       "list_issues",
       "list_pull_requests",
       "ping",
+      "search_code",
     ]);
     const ping = response.result.tools.find((tool) => tool.name === "ping");
     assert.ok(ping, "the ping tool must be discoverable");

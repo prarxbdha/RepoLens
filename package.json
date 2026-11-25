@@ -2,7 +2,7 @@
   "name": "repolens",
   "version": "0.1.0",
   "private": true,
-  "description": "A beginner-friendly GitHub MCP server (local stdio prototype)",
+  "description": "Read-only GitHub repository exploration and intelligence MCP server",
   "type": "module",
   "main": "dist/index.js",
   "engines": {

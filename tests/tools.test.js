@@ -37,7 +37,7 @@ test("languageBreakdown computes byte shares and sorts by size", () => {
   assert.deepEqual(languageBreakdown({}), []);
 });
 
-test("tool discovery exposes all seven tools with validated schemas", async (t) => {
+test("tool discovery exposes every registered tool with validated schemas", async (t) => {
   const { client } = clientFor(() => ({ body: {} }));
   const mcp = await createInMemoryClient(client);
   t.after(() => mcp.close());
