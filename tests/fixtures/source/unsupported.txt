@@ -1,0 +1,1 @@
+This extension has no Tree-sitter grammar.

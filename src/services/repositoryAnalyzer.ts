@@ -9,11 +9,18 @@ import type {
 import { getRepositoryDependencies, type DependencyReport } from "./dependencies.js";
 import { languageBreakdown, type LanguageShare } from "./languages.js";
 import { getTreeOverview, resolveRef, type TreeEntryView } from "./repository.js";
+import {
+  analyzeRepositorySources,
+  emptySourceAnalysis,
+  type RepositorySourceAnalysis,
+} from "./sourceAnalysis.js";
 
 export interface AnalysisOptions {
   ref?: string;
   includeActivity?: boolean;
   includeDependencies?: boolean;
+  includeSourceAnalysis?: boolean;
+  maxAnalysisFiles?: number;
 }
 
 export interface AnalysisError {
@@ -87,6 +94,7 @@ export interface RepositoryAnalysis {
   testing: HeuristicIndicators;
   ci: HeuristicIndicators;
   documentation: HeuristicIndicators;
+  sourceAnalysis: RepositorySourceAnalysis;
   inferredNote: string;
   errors: AnalysisError[];
   incomplete: boolean;
@@ -208,6 +216,7 @@ export async function analyzeRepository(
 
   const includeDependencies = options.includeDependencies !== false;
   const includeActivity = options.includeActivity !== false;
+  const includeSourceAnalysis = options.includeSourceAnalysis === true;
 
   const [languagesResult, treeResult, readmeResult, dependenciesResult, activityResult] =
     await Promise.all([
@@ -244,6 +253,25 @@ export async function analyzeRepository(
     inferred: true,
   });
   const dependencyReport = dependenciesResult.value;
+
+  let sourceAnalysis = emptySourceAnalysis();
+  if (includeSourceAnalysis) {
+    const sourceResult = await section(
+      "source_analysis",
+      analyzeRepositorySources(client, owner, repo, treeResult.value?.entries ?? [], {
+        ref,
+        maxFiles: options.maxAnalysisFiles,
+      }),
+    );
+    if (sourceResult.error !== undefined) {
+      errors.push(sourceResult.error);
+    } else if (sourceResult.value !== undefined) {
+      sourceAnalysis = sourceResult.value;
+      for (const message of sourceAnalysis.errors.slice(0, 10)) {
+        errors.push({ section: "source_analysis", message });
+      }
+    }
+  }
 
   return {
     generatedAt: new Date().toISOString(),
@@ -297,10 +325,12 @@ export async function analyzeRepository(
     testing: heuristic(matchedPaths(allPaths, TEST_PATTERNS, 30)),
     ci: heuristic(matchedPaths(allPaths, CI_PATTERNS, 20)),
     documentation: heuristic(matchedPaths(allPaths, DOC_PATTERNS, 20)),
-    inferredNote:
-      "Entry points, frameworks, testing, CI, and documentation indicators are inferred from file paths and declared dependencies; no repository code was executed or inspected beyond the listed files.",
+    sourceAnalysis,
+    inferredNote: includeSourceAnalysis
+      ? "Entry points, frameworks, testing, CI, and documentation indicators are inferred from file paths and declared dependencies. Supported source files were parsed statically with Tree-sitter; no repository code was executed."
+      : "Entry points, frameworks, testing, CI, and documentation indicators are inferred from file paths and declared dependencies; no repository code was executed or inspected beyond the listed files.",
     errors,
-    incomplete: errors.length > 0,
+    incomplete: errors.length > 0 || sourceAnalysis.incomplete,
   };
 }
 

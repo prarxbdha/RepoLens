@@ -66,7 +66,7 @@ async function startClient() {
   const init = await request("initialize", {
     protocolVersion: PROTOCOL_VERSION,
     capabilities: {},
-    clientInfo: { name: "repolens-test", version: "0.1.0" },
+    clientInfo: { name: "repolens-test", version: "0.3.0" },
   });
   notify("notifications/initialized");
 
@@ -79,7 +79,7 @@ test("MCP stdio server", async (t) => {
 
   await t.test("initialize negotiates a server with tool capability", () => {
     assert.equal(client.init.result.serverInfo.name, "repolens");
-    assert.equal(client.init.result.serverInfo.version, "0.1.0");
+    assert.equal(client.init.result.serverInfo.version, "0.3.0");
     assert.ok(client.init.result.capabilities.tools);
   });
 
@@ -88,10 +88,16 @@ test("MCP stdio server", async (t) => {
     const names = response.result.tools.map((tool) => tool.name);
     assert.deepEqual(names.sort(), [
       "analyze_repository",
+      "find_symbol",
+      "get_code_metrics",
       "get_commit_details",
       "get_commits",
       "get_contributors",
       "get_file_content",
+      "get_file_exports",
+      "get_file_imports",
+      "get_file_outline",
+      "get_file_symbols",
       "get_pr_details",
       "get_repo_dependencies",
       "get_repo_info",

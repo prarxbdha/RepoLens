@@ -1,7 +1,7 @@
 # AGENTS.md — RepoLens
 
 ## Project mission
-RepoLens is a read-only GitHub MCP server built with TypeScript and Node.js. It exposes repository metadata and repository exploration/intelligence information to MCP clients such as OpenCode through a local stdio transport. It inspects remote codebases without cloning them, stays dependency-minimal, and never executes repository code.
+RepoLens is a read-only GitHub MCP server built with TypeScript and Node.js. It exposes repository metadata, repository exploration/intelligence, and static source analysis to MCP clients such as OpenCode through a local stdio transport. It inspects remote codebases without cloning them, keeps dependencies minimal/justified, and never executes repository code.
 
 ## Working mode
 Autonomous implementation mode. Proceed through implementation, testing, debugging, and documentation without pausing for approval after each phase. Ask first only for destructive operations, credentials, or significant architectural decisions. Do not provide tutorials, exercises, or step-by-step teaching unless explicitly requested.
@@ -14,15 +14,16 @@ Before making any change:
 4. After editing, run `npm run build` and `npm test`; report actual results and any skipped checks.
 
 ## Scope
-The server provides read-only tools for repository metadata, commits, issues, pull requests, languages, README, tree traversal, file reads, code search, dependencies, contributors, commit/PR details, and composite analysis, plus a `ping` health tool. GitHub access uses the REST API with native `fetch`, optional `GITHUB_TOKEN`, strict validation, timeouts, bounded caching, limited retries, concurrency limits, and explicit error handling. Do not add a frontend, database, Redis, external LLM API, web server, Docker, write operations, or unrelated dependencies without clear need and approval.
+The server provides read-only tools for repository metadata, commits, issues, pull requests, languages, README, tree traversal, file reads, code search, dependencies, contributors, commit/PR details, composite analysis, and static source analysis, plus a `ping` health tool. GitHub access uses the REST API with native `fetch`, optional `GITHUB_TOKEN`, strict validation, timeouts, bounded caching, limited retries, concurrency limits, and explicit error handling. Static analysis uses Tree-sitter AST parsing only; no repository code is executed. Do not add a frontend, database, Redis, external LLM API, web server, Docker, write operations, or unrelated dependencies without clear need and approval.
 
 ## Stack and architecture
 - TypeScript with strict type checking, Node.js 20+, ESM.
 - Official MCP TypeScript SDK (`@modelcontextprotocol/server` 2.4.0); verify actual import paths and `registerTool` APIs against installed declarations.
 - Zod 4 for tool input schemas; Zod validation occurs before handler execution.
 - Native `fetch` for GitHub REST requests; restricted to `https://api.github.com`.
-- Keep stdio transport, MCP registration, HTTP operations, services, and tool handlers separate.
-- New exploration/intelligence tools return JSON text plus MCP `structuredContent`; original tools keep their text formats.
+- Tree-sitter native Node bindings for local, read-only AST parsing; grammars are lazy-loaded and parsers reused.
+- Keep stdio transport, MCP registration, HTTP operations, services, analysis, and tool handlers separate.
+- New exploration/intelligence/source-analysis tools return JSON text plus MCP `structuredContent`; original tools keep their text formats.
 - Current layout:
   - `src/index.ts` — entry point and stdio transport.
   - `src/server.ts` — MCP server construction and registration of all tools.
@@ -30,11 +31,13 @@ The server provides read-only tools for repository metadata, commits, issues, pu
   - `src/github/client.ts` — REST requests, caching, retries, pagination-aware calls, response bounds.
   - `src/github/types.ts` — strict response types.
   - `src/github/errors.ts`, `pagination.ts`, `cache.ts` — typed errors, Link headers, bounded LRU cache.
-  - `src/services/` — repository exploration, dependency parsing/detection, languages, composite analysis.
+  - `src/analysis/` — language registry, parser/cache, types, and symbol/import/export/metrics extractors.
+  - `src/services/` — repository exploration, dependency parsing/detection, languages, composite analysis, source analysis, symbol search.
   - `src/tools/` — one module per tool family plus shared schemas/result helpers.
   - `src/utils/validation.ts`, `encoding.ts`, `truncation.ts` — boundary validation, safe decoding, size bounds.
-  - `tests/` — mocked unit tests, in-memory MCP tests, stdio integration tests.
+  - `tests/` — mocked unit tests, in-memory MCP tests, stdio integration tests, source fixtures.
   - `README.md` — setup, tool reference, configuration, limitations, security, troubleshooting.
+  - `CHANGELOG.md` — release notes.
 
 ## MCP rules
 - Local MCP uses stdio transport.

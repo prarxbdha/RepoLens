@@ -1,4 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/server";
+import { configureAnalysisCache } from "./analysis/parser.js";
+import { loadConfig } from "./config/env.js";
 import { GitHubClient } from "./github/client.js";
 import { registerAnalysisTools } from "./tools/analysis.js";
 import { registerCommitTools } from "./tools/commits.js";
@@ -12,12 +14,14 @@ import { registerPullTools } from "./tools/pulls.js";
 import { registerReadmeTools } from "./tools/readme.js";
 import { registerRepoTools } from "./tools/repo.js";
 import { registerSearchTools } from "./tools/search.js";
+import { registerSourceAnalysisTools } from "./tools/sourceAnalysis.js";
 import { registerTreeTools } from "./tools/tree.js";
 
 export const SERVER_NAME = "repolens";
-export const SERVER_VERSION = "0.1.0";
+export const SERVER_VERSION = "0.3.0";
 
 export function createServer(client: GitHubClient = new GitHubClient()): McpServer {
+  configureAnalysisCache(loadConfig());
   const server = new McpServer(
     { name: SERVER_NAME, version: SERVER_VERSION },
     { capabilities: { tools: {} } },
@@ -36,6 +40,7 @@ export function createServer(client: GitHubClient = new GitHubClient()): McpServ
   registerDependencyTools(server, client);
   registerContributorTools(server, client);
   registerAnalysisTools(server, client);
+  registerSourceAnalysisTools(server, client);
 
   return server;
 }

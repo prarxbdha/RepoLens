@@ -42,7 +42,7 @@ import {
 
 export const GITHUB_API_BASE = "https://api.github.com";
 const API_VERSION = "2022-11-28";
-const USER_AGENT = "repolens/0.1.0";
+const USER_AGENT = "repolens/0.3.0";
 const MAX_CODE_SEARCH_QUERY = 250;
 
 export {

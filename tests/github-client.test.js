@@ -44,7 +44,7 @@ test("requests use the official API, required headers, and optional token", asyn
   assert.equal(init.method, "GET");
   assert.equal(init.headers.Accept, "application/vnd.github+json");
   assert.equal(init.headers["X-GitHub-Api-Version"], "2022-11-28");
-  assert.equal(init.headers["User-Agent"], "repolens/0.1.0");
+  assert.equal(init.headers["User-Agent"], "repolens/0.3.0");
   assert.equal(init.headers.Authorization, "Bearer test-token-123");
   assert.ok(init.signal);
   assert.equal(

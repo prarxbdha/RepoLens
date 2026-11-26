@@ -257,6 +257,7 @@ test("analyze_repository combines structured context and labels heuristics", asy
   assert.equal(result.activity.pushedAt, "2026-01-02T00:00:00Z");
   assert.equal(result.incomplete, false);
   assert.match(result.inferredNote, /no repository code was executed/i);
+  assert.equal(result.sourceAnalysis.requested, false);
 });
 
 test("analyze_repository survives partial section failures", async (t) => {
@@ -285,4 +286,50 @@ test("analyze_repository survives partial section failures", async (t) => {
   assert.equal(result.dependencies.available, false);
   assert.equal(result.activity.available, false);
   assert.equal(result.entryPoints.paths[0], "src/index.ts");
+});
+
+test("analyze_repository can include bounded source analysis", async (t) => {
+  const { client } = mcpFor((url) => {
+    if (url.pathname === "/repos/o/r/contents/src/index.ts") {
+      const content = "export function hello(name: string): string { return name; }";
+      return {
+        body: {
+          path: "src/index.ts",
+          type: "file",
+          encoding: "base64",
+          size: content.length,
+          sha: "ts1",
+          content: Buffer.from(content, "utf8").toString("base64"),
+        },
+      };
+    }
+    if (url.pathname === "/repos/o/r/contents/README.md") {
+      const content = "# Readme";
+      return {
+        body: {
+          path: "README.md",
+          type: "file",
+          encoding: "base64",
+          size: content.length,
+          sha: "md1",
+          content: Buffer.from(content, "utf8").toString("base64"),
+        },
+      };
+    }
+    return analysisHandler(url);
+  });
+  const mcp = await createInMemoryClient(client);
+  t.after(() => mcp.close());
+
+  const response = await mcp.request("tools/call", {
+    name: "analyze_repository",
+    arguments: { owner: "o", repo: "r", ref: "main", include_source_analysis: true, max_analysis_files: 5 },
+  });
+  assert.equal(response.result.isError, undefined);
+  const result = response.result.structuredContent;
+  assert.equal(result.sourceAnalysis.requested, true);
+  assert.equal(result.sourceAnalysis.filesAnalyzed, 1);
+  assert.equal(result.sourceAnalysis.aggregate.functions, 1);
+  assert.equal(result.sourceAnalysis.files[0].path, "src/index.ts");
+  assert.equal(result.sourceAnalysis.truncated, false);
 });

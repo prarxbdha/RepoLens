@@ -13,6 +13,16 @@ export interface RepoLensConfig {
   retryDelayMs: number;
   cacheTtlMs: number;
   cacheMaxEntries: number;
+  maxAnalysisSourceBytes: number;
+  maxAnalysisNodes: number;
+  maxAnalysisSymbols: number;
+  analysisParseTimeoutMs: number;
+  maxAnalysisFiles: number;
+  maxSymbolSearchFiles: number;
+  maxSymbolSearchBytes: number;
+  symbolSearchTimeoutMs: number;
+  analysisCacheTtlMs: number;
+  analysisCacheMaxEntries: number;
 }
 
 function boundedInt(
@@ -50,5 +60,33 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): RepoLensConfig
     retryDelayMs: boundedInt(env, "REPOLENS_RETRY_DELAY_MS", 250, 0, 5_000),
     cacheTtlMs: boundedInt(env, "REPOLENS_CACHE_TTL_MS", 60_000, 0, 3_600_000),
     cacheMaxEntries: boundedInt(env, "REPOLENS_CACHE_MAX_ENTRIES", 200, 0, 5_000),
+    maxAnalysisSourceBytes: boundedInt(
+      env,
+      "REPOLENS_MAX_ANALYSIS_SOURCE_BYTES",
+      256 * 1024,
+      1_024,
+      2 * 1024 * 1024,
+    ),
+    maxAnalysisNodes: boundedInt(env, "REPOLENS_MAX_ANALYSIS_NODES", 100_000, 100, 1_000_000),
+    maxAnalysisSymbols: boundedInt(env, "REPOLENS_MAX_ANALYSIS_SYMBOLS", 500, 10, 10_000),
+    analysisParseTimeoutMs: boundedInt(env, "REPOLENS_ANALYSIS_PARSE_TIMEOUT_MS", 1_500, 50, 10_000),
+    maxAnalysisFiles: boundedInt(env, "REPOLENS_MAX_ANALYSIS_FILES", 20, 1, 100),
+    maxSymbolSearchFiles: boundedInt(env, "REPOLENS_MAX_SYMBOL_SEARCH_FILES", 50, 1, 200),
+    maxSymbolSearchBytes: boundedInt(
+      env,
+      "REPOLENS_MAX_SYMBOL_SEARCH_BYTES",
+      2 * 1024 * 1024,
+      64 * 1024,
+      16 * 1024 * 1024,
+    ),
+    symbolSearchTimeoutMs: boundedInt(env, "REPOLENS_SYMBOL_SEARCH_TIMEOUT_MS", 5_000, 100, 60_000),
+    analysisCacheTtlMs: boundedInt(env, "REPOLENS_ANALYSIS_CACHE_TTL_MS", 60_000, 0, 3_600_000),
+    analysisCacheMaxEntries: boundedInt(
+      env,
+      "REPOLENS_ANALYSIS_CACHE_MAX_ENTRIES",
+      100,
+      0,
+      2_000,
+    ),
   };
 }
